@@ -8,18 +8,78 @@
 
 import UIKit
 
+
+
+
 class ViewController: UIViewController {
 
+    @IBOutlet weak var textField1: UITextField!
+    
+    @IBOutlet weak var textField2: UITextField!
+    
+    @IBOutlet weak var resultLabel: UILabel!
+    
+    var result=0
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    @IBAction func toplam(_ sender: Any) {
+        
+        if let first_number=Int(textField1.text!){
+            if let second_number=Int(textField2.text!){
+                
+                result=first_number+second_number
+                
+                resultLabel.text=String(result)
+                
+            }
+        }
     }
-
-
+    
+    
+    @IBAction func cikarma(_ sender: Any) {
+        
+        if let first_number=Int(textField1.text!){
+            if let second_number=Int(textField2.text!){
+                
+                result=first_number-second_number
+                
+                resultLabel.text=String(result)
+                
+            }
+        }
+    }
+    
+    
+    @IBAction func carpma(_ sender: Any) {
+        
+        if let first_number=Int(textField1.text!){
+            if let second_number=Int(textField2.text!){
+                
+                result=first_number*second_number
+                
+                resultLabel.text=String(result)
+                
+            }
+        }
+    }
+    
+    
+    @IBAction func bolme(_ sender: Any) {
+        
+        if let first_number=Int(textField1.text!){
+            if let second_number=Int(textField2.text!){
+                
+                result=first_number/second_number
+                
+                resultLabel.text=String(result)
+                
+            }
+        }
+    }
+    
 }
 
