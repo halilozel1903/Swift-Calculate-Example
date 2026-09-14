@@ -5,10 +5,18 @@
 
 import SwiftUI
 
+/// Identifies the two operand fields for keyboard focus.
+enum OperandFieldID: Hashable {
+    case first
+    case second
+}
+
 /// Labelled numeric input used for both operands.
 struct OperandField: View {
     let title: LocalizedStringKey
+    let id: OperandFieldID
     @Binding var text: String
+    @FocusState.Binding var focus: OperandFieldID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -22,12 +30,7 @@ struct OperandField: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .monospacedDigit()
+                .focused($focus, equals: id)
         }
     }
-}
-
-#Preview {
-    @Previewable @State var text = "42"
-    OperandField(title: "First number", text: $text)
-        .padding()
 }

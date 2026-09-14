@@ -8,12 +8,7 @@ import SwiftUI
 /// Two operands, four operations, one result.
 struct CalculatorView: View {
     @State private var viewModel = CalculatorViewModel()
-    @FocusState private var focusedField: Field?
-
-    private enum Field: Hashable {
-        case first
-        case second
-    }
+    @FocusState private var focus: OperandFieldID?
 
     var body: some View {
         NavigationStack {
@@ -35,13 +30,13 @@ struct CalculatorView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Clear", systemImage: "trash") {
                         viewModel.clear()
-                        focusedField = nil
+                        focus = nil
                     }
                     .disabled(viewModel.isEmpty)
                 }
 
                 ToolbarItem(placement: .keyboard) {
-                    Button("Done") { focusedField = nil }
+                    Button("Done") { focus = nil }
                 }
             }
         }
@@ -51,19 +46,21 @@ struct CalculatorView: View {
         VStack(spacing: 12) {
             OperandField(
                 title: "First number",
-                text: $viewModel.firstOperandText
+                id: .first,
+                text: $viewModel.firstOperandText,
+                focus: $focus
             )
-            .focused($focusedField, equals: .first)
             .submitLabel(.next)
-            .onSubmit { focusedField = .second }
+            .onSubmit { focus = .second }
 
             OperandField(
                 title: "Second number",
-                text: $viewModel.secondOperandText
+                id: .second,
+                text: $viewModel.secondOperandText,
+                focus: $focus
             )
-            .focused($focusedField, equals: .second)
             .submitLabel(.done)
-            .onSubmit { focusedField = nil }
+            .onSubmit { focus = nil }
         }
     }
 
@@ -74,7 +71,7 @@ struct CalculatorView: View {
         ) {
             ForEach(CalculatorOperation.allCases) { operation in
                 Button {
-                    focusedField = nil
+                    focus = nil
                     viewModel.calculate(operation)
                 } label: {
                     Text(operation.symbol)
