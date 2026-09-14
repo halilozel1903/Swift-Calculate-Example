@@ -95,11 +95,25 @@ struct CalculatorEngineTests {
         #expect(value == 0.75)
     }
 
-    @Test("Reads the locale decimal separator")
-    func localizedSeparator() throws {
+    @Test("Reads comma and dot as decimal separators")
+    func decimalSeparators() throws {
         let turkish = CalculatorEngine(locale: Locale(identifier: "tr_TR"))
         #expect(try turkish.operand(from: "1,5", at: .first) == 1.5)
         #expect(try turkish.operand(from: "1.5", at: .first) == 1.5)
+        #expect(try engine.operand(from: "1,5", at: .first) == 1.5)
+        #expect(try engine.operand(from: "1.5", at: .first) == 1.5)
+    }
+
+    @Test("Reads a grouped number using the locale")
+    func groupedNumber() throws {
+        #expect(try engine.operand(from: "1,234.5", at: .first) == 1234.5)
+        let turkish = CalculatorEngine(locale: Locale(identifier: "tr_TR"))
+        #expect(try turkish.operand(from: "1.234,5", at: .first) == 1234.5)
+    }
+
+    @Test("Accepts a minus sign typed as U+2212")
+    func unicodeMinusSign() throws {
+        #expect(try engine.operand(from: "\u{2212}3", at: .first) == -3)
     }
 
     @Test("Formats whole results without a decimal separator")

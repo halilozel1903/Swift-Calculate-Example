@@ -55,21 +55,33 @@ struct CalculatorEngine: Sendable {
 
     /// Reads a finite number out of user supplied text.
     ///
-    /// Both the locale's decimal separator and a plain dot are accepted, so
-    /// `"1,5"` and `"1.5"` parse to the same value on a Turkish device.
+    /// A lone `,` or `.` is always read as a decimal separator, so `"1,5"` and
+    /// `"1.5"` mean the same thing regardless of the device language. Input
+    /// that mixes both separators, or that uses non-ASCII digits, is parsed
+    /// with ``locale``.
     func operand(
         from text: String,
         at position: CalculatorError.Operand
     ) throws(CalculatorError) -> Double {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\u{2212}", with: "-")
         guard !trimmed.isEmpty else { throw CalculatorError.invalidOperand(position) }
 
-        let strategy = FloatingPointFormatStyle<Double>.number.locale(locale).parseStrategy
-        let parsed = try? strategy.parse(trimmed)
-        guard let value = parsed ?? Double(trimmed), value.isFinite else {
+        guard let value = number(from: trimmed), value.isFinite else {
             throw CalculatorError.invalidOperand(position)
         }
         return value
+    }
+
+    private func number(from text: String) -> Double? {
+        let usesBothSeparators = text.contains(",") && text.contains(".")
+        if !usesBothSeparators, let value = Double(text.replacingOccurrences(of: ",", with: ".")) {
+            return value
+        }
+
+        let strategy = FloatingPointFormatStyle<Double>.number.locale(locale).parseStrategy
+        return try? strategy.parse(text)
     }
 
     /// Formats a result for display, dropping a trailing `.0`.
