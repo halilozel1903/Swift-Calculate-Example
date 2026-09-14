@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Pick an iOS simulator
+        id: simulator
+        run: |
+          udid=$(xcrun simctl list devices available --json | jq -r '
+            [.devices | to_entries[] | select(.key | test("iOS")) | .value[]
+             | select(.name | test("iPhone"))] | last | .udid // empty')
+          if [ -z "$udid" ]; then echo "No iOS simulator available" >&2; exit 1; fi
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+
+      - name: Build for testing
+        run: |
+          set -o pipefail
+          xcodebuild build-for-testing \
+            -project Calculator.xcodeproj \
+            -scheme Calculator \
+            -destination "id=${{ steps.simulator.outputs.udid }}" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run tests
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building \
+            -project Calculator.xcodeproj \
+            -scheme Calculator \
+            -destination "id=${{ steps.simulator.outputs.udid }}" \
+            CODE_SIGNING_ALLOWED=NO
+
+  lint:
+    name: SwiftLint
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Lint
+        run: swiftlint lint --strict
