@@ -40,65 +40,73 @@ struct CalculatorEngine: Sendable {
         lhs: Double,
         rhs: Double = 0
     ) throws(CalculatorError) -> Double {
-        let value: Double = switch operation {
-        case .addition:
-            lhs + rhs
-        case .subtraction:
-            lhs - rhs
-        case .multiplication:
-            lhs * rhs
-        case .division:
-            if rhs == 0 {
-                throw CalculatorError.divisionByZero
-            } else {
-                lhs / rhs
-            }
-        case .power:
-            pow(lhs, rhs)
-        case .percent:
-            lhs / 100
-        case .negate:
-            -lhs
-        case .squareRoot:
-            if lhs < 0 {
-                throw CalculatorError.domainError
-            } else {
-                sqrt(lhs)
-            }
-        case .square:
-            lhs * lhs
-        case .reciprocal:
-            if lhs == 0 {
-                throw CalculatorError.divisionByZero
-            } else {
-                1 / lhs
-            }
-        case .sine:
-            sin(lhs)
-        case .cosine:
-            cos(lhs)
-        case .tangent:
-            tan(lhs)
-        case .naturalLog:
-            if lhs <= 0 {
-                throw CalculatorError.domainError
-            } else {
-                log(lhs)
-            }
-        case .log10:
-            if lhs <= 0 {
-                throw CalculatorError.domainError
-            } else {
-                log10(lhs)
-            }
-        case .exp:
-            exp(lhs)
-        case .tenPow:
-            pow(10, lhs)
+        let value = if operation.isBinary {
+            try applyBinary(operation, lhs: lhs, rhs: rhs)
+        } else {
+            try applyUnary(operation, to: lhs)
         }
-
         guard value.isFinite else { throw CalculatorError.resultUnrepresentable }
         return value
+    }
+
+    private func applyBinary(
+        _ operation: CalculatorOperation,
+        lhs: Double,
+        rhs: Double
+    ) throws(CalculatorError) -> Double {
+        switch operation {
+        case .addition:
+            return lhs + rhs
+        case .subtraction:
+            return lhs - rhs
+        case .multiplication:
+            return lhs * rhs
+        case .division:
+            guard rhs != 0 else { throw CalculatorError.divisionByZero }
+            return lhs / rhs
+        case .power:
+            return pow(lhs, rhs)
+        default:
+            throw CalculatorError.invalidOperand(.current)
+        }
+    }
+
+    private func applyUnary(
+        _ operation: CalculatorOperation,
+        to value: Double
+    ) throws(CalculatorError) -> Double {
+        switch operation {
+        case .percent:
+            return value / 100
+        case .negate:
+            return -value
+        case .squareRoot:
+            guard value >= 0 else { throw CalculatorError.domainError }
+            return sqrt(value)
+        case .square:
+            return value * value
+        case .reciprocal:
+            guard value != 0 else { throw CalculatorError.divisionByZero }
+            return 1 / value
+        case .sine:
+            return sin(value)
+        case .cosine:
+            return cos(value)
+        case .tangent:
+            return tan(value)
+        case .naturalLog:
+            guard value > 0 else { throw CalculatorError.domainError }
+            return log(value)
+        case .log10:
+            guard value > 0 else { throw CalculatorError.domainError }
+            return log10(value)
+        case .exp:
+            return exp(value)
+        case .tenPow:
+            return pow(10, value)
+        default:
+            throw CalculatorError.invalidOperand(.current)
+        }
     }
 
     /// Applies `operation` to two numbers.
