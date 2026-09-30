@@ -12,10 +12,13 @@ import Testing
 @Suite("Calculator view model")
 struct CalculatorViewModelTests {
     private func makeViewModel(
-        suiteName: String = UUID().uuidString
+        suiteName: String = UUID().uuidString,
+        resetSuite: Bool = true
     ) throws -> CalculatorViewModel {
         let defaults = try #require(UserDefaults(suiteName: suiteName))
-        defaults.removePersistentDomain(forName: suiteName)
+        if resetSuite {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
         return CalculatorViewModel(
             engine: CalculatorEngine(locale: Locale(identifier: "en_US")),
             historyStore: CalculationHistoryStore(defaults: defaults, key: "tests.history")
@@ -137,7 +140,7 @@ struct CalculatorViewModelTests {
         first.input(.digit(5))
         first.input(.equals)
 
-        let second = try makeViewModel(suiteName: suite)
+        let second = try makeViewModel(suiteName: suite, resetSuite: false)
         #expect(second.history.count == 1)
         #expect(second.history.first?.result == "10")
 
