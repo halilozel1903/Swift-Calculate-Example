@@ -174,10 +174,10 @@ final class CalculatorViewModel {
             return
         }
 
-        if isTyping || storedValue == nil {
-            commitDisplayIntoStoredValue()
-        } else if pendingOperation != nil {
+        if let pendingOperation, storedValue != nil, isTyping {
             evaluatePending(keepTyping: false)
+        } else if isTyping || storedValue == nil {
+            commitDisplayIntoStoredValue()
         }
 
         pendingOperation = operation
