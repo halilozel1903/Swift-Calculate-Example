@@ -14,7 +14,13 @@ struct CalculatorViewModelTests {
     private func makeViewModel(
         suiteName: String = UUID().uuidString
     ) -> CalculatorViewModel {
-        let defaults = UserDefaults(suiteName: suiteName)!
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            Issue.record("Unable to create UserDefaults suite \(suiteName)")
+            return CalculatorViewModel(
+                engine: CalculatorEngine(locale: Locale(identifier: "en_US")),
+                historyStore: CalculationHistoryStore(key: "tests.history.\(suiteName)")
+            )
+        }
         defaults.removePersistentDomain(forName: suiteName)
         return CalculatorViewModel(
             engine: CalculatorEngine(locale: Locale(identifier: "en_US")),

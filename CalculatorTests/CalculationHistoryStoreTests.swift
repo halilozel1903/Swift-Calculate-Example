@@ -11,9 +11,9 @@ import Testing
 @Suite("Calculation history store")
 struct CalculationHistoryStoreTests {
     @Test("Saves and loads entries")
-    func roundTrip() {
+    func roundTrip() throws {
         let suite = UUID().uuidString
-        let defaults = UserDefaults(suiteName: suite)!
+        let defaults = try #require(UserDefaults(suiteName: suite))
         defaults.removePersistentDomain(forName: suite)
         let store = CalculationHistoryStore(defaults: defaults, key: "history", maximumEntries: 2)
 
