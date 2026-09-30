@@ -13,14 +13,8 @@ import Testing
 struct CalculatorViewModelTests {
     private func makeViewModel(
         suiteName: String = UUID().uuidString
-    ) -> CalculatorViewModel {
-        guard let defaults = UserDefaults(suiteName: suiteName) else {
-            Issue.record("Unable to create UserDefaults suite \(suiteName)")
-            return CalculatorViewModel(
-                engine: CalculatorEngine(locale: Locale(identifier: "en_US")),
-                historyStore: CalculationHistoryStore(key: "tests.history.\(suiteName)")
-            )
-        }
+    ) throws -> CalculatorViewModel {
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
         defaults.removePersistentDomain(forName: suiteName)
         return CalculatorViewModel(
             engine: CalculatorEngine(locale: Locale(identifier: "en_US")),
@@ -29,8 +23,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("Publishes a formatted result")
-    func successfulCalculation() {
-        let viewModel = makeViewModel()
+    func successfulCalculation() throws {
+        let viewModel = try makeViewModel()
         viewModel.firstOperandText = "12"
         viewModel.secondOperandText = "4"
 
@@ -43,8 +37,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("Publishes an error message and clears the stale result")
-    func failedCalculation() {
-        let viewModel = makeViewModel()
+    func failedCalculation() throws {
+        let viewModel = try makeViewModel()
         viewModel.firstOperandText = "12"
         viewModel.secondOperandText = "4"
         viewModel.calculate(.addition)
@@ -58,8 +52,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("Clear resets every field")
-    func clear() {
-        let viewModel = makeViewModel()
+    func clear() throws {
+        let viewModel = try makeViewModel()
         viewModel.firstOperandText = "1"
         viewModel.secondOperandText = "2"
         viewModel.calculate(.addition)
@@ -75,8 +69,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("Keypad evaluates a basic expression")
-    func keypadAddition() {
-        let viewModel = makeViewModel()
+    func keypadAddition() throws {
+        let viewModel = try makeViewModel()
         viewModel.input(.digit(1))
         viewModel.input(.digit(2))
         viewModel.input(.operation(.addition))
@@ -89,8 +83,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("Keypad chains binary operations")
-    func keypadChaining() {
-        let viewModel = makeViewModel()
+    func keypadChaining() throws {
+        let viewModel = try makeViewModel()
         viewModel.input(.digit(1))
         viewModel.input(.operation(.addition))
         viewModel.input(.digit(2))
@@ -102,8 +96,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("Percent and sign change update the display")
-    func percentAndNegate() {
-        let viewModel = makeViewModel()
+    func percentAndNegate() throws {
+        let viewModel = try makeViewModel()
         viewModel.input(.digit(5))
         viewModel.input(.digit(0))
         viewModel.input(.operation(.percent))
@@ -114,8 +108,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("Scientific square root works from the keypad")
-    func keypadSquareRoot() {
-        let viewModel = makeViewModel()
+    func keypadSquareRoot() throws {
+        let viewModel = try makeViewModel()
         viewModel.input(.digit(9))
         viewModel.input(.operation(.squareRoot))
         #expect(viewModel.displayText == "3")
@@ -123,8 +117,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("All clear resets keypad state")
-    func allClear() {
-        let viewModel = makeViewModel()
+    func allClear() throws {
+        let viewModel = try makeViewModel()
         viewModel.input(.digit(8))
         viewModel.input(.operation(.multiplication))
         viewModel.input(.allClear)
@@ -135,15 +129,15 @@ struct CalculatorViewModelTests {
     }
 
     @Test("History persists and can be restored")
-    func historyPersistence() {
+    func historyPersistence() throws {
         let suite = UUID().uuidString
-        let first = makeViewModel(suiteName: suite)
+        let first = try makeViewModel(suiteName: suite)
         first.input(.digit(2))
         first.input(.operation(.multiplication))
         first.input(.digit(5))
         first.input(.equals)
 
-        let second = makeViewModel(suiteName: suite)
+        let second = try makeViewModel(suiteName: suite)
         #expect(second.history.count == 1)
         #expect(second.history.first?.result == "10")
 
@@ -154,8 +148,8 @@ struct CalculatorViewModelTests {
     }
 
     @Test("Clear history empties the store")
-    func clearHistory() {
-        let viewModel = makeViewModel()
+    func clearHistory() throws {
+        let viewModel = try makeViewModel()
         viewModel.input(.digit(1))
         viewModel.input(.operation(.addition))
         viewModel.input(.digit(1))
