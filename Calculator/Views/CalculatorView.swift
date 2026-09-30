@@ -4,83 +4,188 @@
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
-/// Two operands, four operations, one result.
+/// Full calculator with keypad, history, haptics and adaptive layout.
 struct CalculatorView: View {
     @State private var viewModel = CalculatorViewModel()
-    @FocusState private var focus: OperandFieldID?
+    @State private var showsHistory = false
+    @State private var copiedBanner = false
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    operandFields
-                    operationGrid
-                    ResultView(
-                        resultText: viewModel.resultText,
-                        errorMessage: viewModel.errorMessage,
-                        operation: viewModel.lastOperation
-                    )
+            GeometryReader { geometry in
+                let landscape = geometry.size.width > geometry.size.height
+                let showsScientific = shouldShowScientific(landscape: landscape)
+
+                Group {
+                    if landscape && horizontalSizeClass == .regular {
+                        wideLayout(showsScientific: showsScientific)
+                    } else if landscape {
+                        landscapePhoneLayout(showsScientific: showsScientific)
+                    } else {
+                        portraitLayout(showsScientific: showsScientific)
+                    }
                 }
                 .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Calculator")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Clear", systemImage: "trash") {
-                        viewModel.clear()
-                        focus = nil
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("History", systemImage: "clock.arrow.circlepath") {
+                        showsHistory = true
                     }
-                    .disabled(viewModel.isEmpty)
+                    .accessibilityLabel("Calculation history")
                 }
 
-                ToolbarItem(placement: .keyboard) {
-                    Button("Done") { focus = nil }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Copy", systemImage: "doc.on.doc") {
+                        copyResult()
+                    }
+                    .accessibilityLabel("Copy result")
                 }
             }
+            .sheet(isPresented: $showsHistory) {
+                HistoryView(
+                    entries: viewModel.history,
+                    onClear: viewModel.clearHistory,
+                    onSelect: { entry in
+                        viewModel.restore(entry)
+                        showsHistory = false
+                    }
+                )
+                .presentationDetents([.medium, .large])
+            }
+            .overlay(alignment: .top) {
+                if copiedBanner {
+                    Text("Copied")
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(.thinMaterial, in: .capsule)
+                        .padding(.top, 8)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .accessibilityLabel("Result copied")
+                }
+            }
+            .animation(.snappy, value: copiedBanner)
         }
     }
 
-    private var operandFields: some View {
-        VStack(spacing: 12) {
-            OperandField(
-                title: "First number",
-                id: .first,
-                text: $viewModel.firstOperandText,
-                focus: $focus
+    private func portraitLayout(showsScientific: Bool) -> some View {
+        VStack(spacing: 16) {
+            display
+            KeypadView(
+                clearTitle: viewModel.clearKeyTitle,
+                showsScientific: showsScientific,
+                onKey: handle
             )
-            .submitLabel(.next)
-            .onSubmit { focus = .second }
-
-            OperandField(
-                title: "Second number",
-                id: .second,
-                text: $viewModel.secondOperandText,
-                focus: $focus
-            )
-            .submitLabel(.done)
-            .onSubmit { focus = nil }
         }
     }
 
-    private var operationGrid: some View {
-        LazyVGrid(
-            columns: Array(repeating: GridItem(spacing: 12), count: 2),
-            spacing: 12
-        ) {
-            ForEach(CalculatorOperation.allCases) { operation in
+    private func landscapePhoneLayout(showsScientific: Bool) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            display
+                .frame(maxWidth: .infinity)
+            KeypadView(
+                clearTitle: viewModel.clearKeyTitle,
+                showsScientific: showsScientific,
+                onKey: handle
+            )
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private func wideLayout(showsScientific: Bool) -> some View {
+        HStack(alignment: .top, spacing: 24) {
+            VStack(spacing: 16) {
+                display
+                if !viewModel.history.isEmpty {
+                    recentHistory
+                }
+            }
+            .frame(maxWidth: 420)
+
+            KeypadView(
+                clearTitle: viewModel.clearKeyTitle,
+                showsScientific: showsScientific,
+                onKey: handle
+            )
+            .frame(maxWidth: 560)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var display: some View {
+        DisplayView(
+            expressionText: viewModel.expressionText,
+            displayText: viewModel.displayText,
+            errorMessage: viewModel.errorMessage,
+            onCopy: copyResult
+        )
+        .frame(minHeight: 120)
+    }
+
+    private var recentHistory: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Recent")
+                .font(.headline)
+            ForEach(viewModel.history.prefix(5)) { entry in
                 Button {
-                    focus = nil
-                    viewModel.calculate(operation)
+                    viewModel.restore(entry)
+                    HapticFeedback.keyTap()
                 } label: {
-                    Text(operation.symbol)
-                        .font(.title2.weight(.semibold))
-                        .frame(maxWidth: .infinity, minHeight: 56)
+                    HStack {
+                        Text(entry.expression)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(entry.result)
+                            .fontWeight(.semibold)
+                            .monospacedDigit()
+                    }
+                    .font(.subheadline)
                 }
-                .buttonStyle(.borderedProminent)
-                .accessibilityLabel(operation.accessibilityName)
+                .buttonStyle(.plain)
+                .accessibilityLabel("Reuse \(entry.expression) equals \(entry.result)")
             }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.background.secondary, in: .rect(cornerRadius: 16))
+    }
+
+    private func shouldShowScientific(landscape: Bool) -> Bool {
+        horizontalSizeClass == .regular || landscape || verticalSizeClass == .compact
+    }
+
+    private func handle(_ key: CalculatorKey) {
+        let hadError = viewModel.errorMessage != nil
+        viewModel.input(key)
+        if viewModel.errorMessage != nil {
+            HapticFeedback.error()
+        } else if case .equals = key, !hadError {
+            HapticFeedback.success()
+        } else {
+            HapticFeedback.keyTap()
+        }
+    }
+
+    private func copyResult() {
+        _ = viewModel.copyDisplayToPasteboard()
+        #if canImport(UIKit)
+        UIPasteboard.general.string = viewModel.displayText
+        #endif
+        HapticFeedback.success()
+        copiedBanner = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.2))
+            copiedBanner = false
         }
     }
 }

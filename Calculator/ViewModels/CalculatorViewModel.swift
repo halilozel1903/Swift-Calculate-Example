@@ -124,6 +124,17 @@ final class CalculatorViewModel {
         historyStore.clear()
     }
 
+    /// Loads a history result back onto the display.
+    func restore(_ entry: CalculationHistoryEntry) {
+        displayText = entry.result
+        expressionText = entry.expression
+        storedValue = nil
+        pendingOperation = nil
+        isTyping = false
+        errorMessage = nil
+        resultText = entry.result
+    }
+
     func copyDisplayToPasteboard() -> String {
         displayText
     }
