@@ -30,6 +30,13 @@ final class CalculatorViewModel {
     private let engine: CalculatorEngine
     private let historyStore: CalculationHistoryStore
 
+    /// Legacy fields kept so older two-operand tests and call sites still compile
+    /// while the keypad UI is the primary interface.
+    var firstOperandText = ""
+    var secondOperandText = ""
+    private(set) var resultText: String?
+    private(set) var lastOperation: CalculatorOperation?
+
     init(
         engine: CalculatorEngine = CalculatorEngine(),
         historyStore: CalculationHistoryStore = CalculationHistoryStore()
@@ -38,13 +45,6 @@ final class CalculatorViewModel {
         self.historyStore = historyStore
         history = historyStore.load()
     }
-
-    /// Legacy fields kept so older two-operand tests and call sites still compile
-    /// while the keypad UI is the primary interface.
-    var firstOperandText = ""
-    var secondOperandText = ""
-    private(set) var resultText: String?
-    private(set) var lastOperation: CalculatorOperation?
 
     var isEmpty: Bool {
         displayText == "0"
@@ -60,8 +60,6 @@ final class CalculatorViewModel {
     var clearKeyTitle: String {
         isTyping || displayText != "0" ? "C" : "AC"
     }
-
-    // MARK: - Legacy two-field API
 
     /// Evaluates `operation` using the two operand text fields.
     func calculate(_ operation: CalculatorOperation) {
@@ -93,8 +91,6 @@ final class CalculatorViewModel {
         lastOperation = nil
         resetKeypad(allClear: true)
     }
-
-    // MARK: - Keypad API
 
     func input(_ key: CalculatorKey) {
         errorMessage = nil
@@ -138,9 +134,9 @@ final class CalculatorViewModel {
     func copyDisplayToPasteboard() -> String {
         displayText
     }
+}
 
-    // MARK: - Private
-
+extension CalculatorViewModel {
     private func inputDigit(_ digit: Int) {
         let next = String(digit)
         if isTyping {
