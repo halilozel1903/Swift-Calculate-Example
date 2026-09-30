@@ -76,6 +76,20 @@ struct CalculatorEngine: Sendable {
         to value: Double
     ) throws(CalculatorError) -> Double {
         switch operation {
+        case .percent, .negate, .squareRoot, .square, .reciprocal:
+            return try applyElementaryUnary(operation, to: value)
+        case .sine, .cosine, .tangent, .naturalLog, .log10, .exp, .tenPow:
+            return try applyScientificUnary(operation, to: value)
+        default:
+            throw CalculatorError.invalidOperand(.current)
+        }
+    }
+
+    private func applyElementaryUnary(
+        _ operation: CalculatorOperation,
+        to value: Double
+    ) throws(CalculatorError) -> Double {
+        switch operation {
         case .percent:
             return value / 100
         case .negate:
@@ -88,6 +102,16 @@ struct CalculatorEngine: Sendable {
         case .reciprocal:
             guard value != 0 else { throw CalculatorError.divisionByZero }
             return 1 / value
+        default:
+            throw CalculatorError.invalidOperand(.current)
+        }
+    }
+
+    private func applyScientificUnary(
+        _ operation: CalculatorOperation,
+        to value: Double
+    ) throws(CalculatorError) -> Double {
+        switch operation {
         case .sine:
             return sin(value)
         case .cosine:
