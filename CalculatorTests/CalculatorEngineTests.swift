@@ -19,11 +19,12 @@ struct CalculatorEngineTests {
         let expected: Double
     }
 
-    @Test("Applies each operation", arguments: [
+    @Test("Applies each binary operation", arguments: [
         OperationCase(operation: .addition, lhs: 7, rhs: 3, expected: 10),
         OperationCase(operation: .subtraction, lhs: 7, rhs: 3, expected: 4),
         OperationCase(operation: .multiplication, lhs: 7, rhs: 3, expected: 21),
-        OperationCase(operation: .division, lhs: 7, rhs: 2, expected: 3.5)
+        OperationCase(operation: .division, lhs: 7, rhs: 2, expected: 3.5),
+        OperationCase(operation: .power, lhs: 2, rhs: 3, expected: 8)
     ])
     func operations(testCase: OperationCase) throws {
         let value = try engine.result(
@@ -32,6 +33,21 @@ struct CalculatorEngineTests {
             rhs: testCase.rhs
         )
         #expect(value == testCase.expected)
+    }
+
+    @Test("Applies unary scientific operations")
+    func unaryOperations() throws {
+        #expect(try engine.apply(.percent, lhs: 50) == 0.5)
+        #expect(try engine.apply(.negate, lhs: 4) == -4)
+        #expect(try engine.apply(.squareRoot, lhs: 9) == 3)
+        #expect(try engine.apply(.square, lhs: 5) == 25)
+        #expect(try engine.apply(.reciprocal, lhs: 4) == 0.25)
+        #expect(try engine.apply(.sine, lhs: 0) == 0)
+        #expect(try engine.apply(.cosine, lhs: 0) == 1)
+        #expect(try engine.apply(.naturalLog, lhs: 1) == 0)
+        #expect(try engine.apply(.log10, lhs: 100) == 2)
+        #expect(try engine.apply(.exp, lhs: 0) == 1)
+        #expect(try engine.apply(.tenPow, lhs: 2) == 100)
     }
 
     @Test("Division keeps the fractional part")
@@ -52,6 +68,26 @@ struct CalculatorEngineTests {
                 firstOperandText: "1",
                 secondOperandText: divisor
             )
+        }
+    }
+
+    @Test("Reciprocal of zero fails")
+    func reciprocalOfZero() {
+        #expect(throws: CalculatorError.divisionByZero) {
+            try engine.apply(.reciprocal, lhs: 0)
+        }
+    }
+
+    @Test("Domain errors for roots and logs")
+    func domainErrors() {
+        #expect(throws: CalculatorError.domainError) {
+            try engine.apply(.squareRoot, lhs: -1)
+        }
+        #expect(throws: CalculatorError.domainError) {
+            try engine.apply(.naturalLog, lhs: 0)
+        }
+        #expect(throws: CalculatorError.domainError) {
+            try engine.apply(.log10, lhs: -10)
         }
     }
 

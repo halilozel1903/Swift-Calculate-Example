@@ -1,4 +1,4 @@
-# Swift Calculate Example 🧮
+# Swift Calculate Example
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-FA7343?logo=swift&logoColor=white)](https://www.swift.org)
 [![Xcode](https://img.shields.io/badge/Xcode-26-1575F9?logo=xcode&logoColor=white)](https://developer.apple.com/xcode/)
@@ -8,28 +8,32 @@
 [![CI](https://github.com/halilozel1903/swift-calculate-example/actions/workflows/ci.yml/badge.svg)](https://github.com/halilozel1903/swift-calculate-example/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A tiny iOS calculator sample: type two numbers, pick an operation, read the result.
+A modern iOS calculator sample built with SwiftUI and Swift 6.
 
-The app originally shipped in 2017 as a UIKit storyboard project with integer-only maths. It has since
-been rebuilt in SwiftUI on the Swift 6 language mode, with the arithmetic moved into a dependency-free,
-unit-tested engine.
+What started as a 2017 UIKit storyboard demo (integer-only maths, two text fields) is now a real
+calculator: full keypad, scientific operations, persisted history, haptics, copy-to-clipboard, and
+layouts that adapt to iPhone, iPad and landscape.
 
 ## Features
 
-- ➕ ➖ ✖️ ➗ Addition, subtraction, multiplication and division of two numbers.
-- 🔢 Decimal and negative input, with both `,` and `.` accepted as the decimal separator.
-- 🛡️ Friendly errors instead of crashes for empty fields, non-numeric text, division by zero and overflow.
-- 🧾 Locale-aware result formatting that drops a trailing `.0` and caps at eight fraction digits.
-- ⌨️ Keyboard-aware layout with focus handling, a `Next`/`Done` submit flow and a `Clear` action.
-- ♿ VoiceOver labels on the operation buttons, Dynamic Type friendly text and selectable results.
-- 🧪 Unit tests for the calculation engine and the view model, plus CI on every pull request.
+- Full on-screen keypad with digits, decimal separator, clear / all-clear, equals and four-function math
+- Percent (`%`) and sign change (`+/−`)
+- Scientific operations: √, x², 1/x, xⁿ, sin, cos, tan, ln, log, eˣ, 10ˣ, plus π and e constants
+- Calculation history persisted with `UserDefaults`, browsable in a sheet and quick-reuse on iPad
+- Copy result from the toolbar, context menu or double-tap
+- Light haptic feedback on key presses, success and errors
+- Dynamic Type aware labels and VoiceOver names on every key
+- Adaptive layout for portrait phone, landscape phone and regular-width iPad
+- Locale-aware parsing and formatting (`,` or `.` as decimal separators)
+- Friendly errors for division by zero, invalid domain values and overflow
+- Unit tests with Swift Testing and CI on every pull request
 
 ## Requirements
 
 | Tool | Version |
 | --- | --- |
 | Xcode | 26.0 or later |
-| Swift | 6.0 language mode (Swift 6.2 toolchain) |
+| Swift | 6.0 language mode |
 | iOS deployment target | 18.0 or later |
 | Devices | iPhone and iPad |
 
@@ -46,17 +50,24 @@ Select the `Calculator` scheme and an iOS simulator, then press `Cmd + R` to run
 From the command line:
 
 ```bash
-# Build
+# Resolve a simulator UDID, then build / test
+udid=$(xcrun simctl list devices available --json | jq -r '
+  [.devices | to_entries[] | select(.key | test("iOS")) | .value[]
+   | select(.name | test("iPhone"))] | last | .udid')
+
 xcodebuild build \
   -project Calculator.xcodeproj \
   -scheme Calculator \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination "id=${udid}" \
+  CODE_SIGNING_ALLOWED=NO
 
-# Test
 xcodebuild test \
   -project Calculator.xcodeproj \
   -scheme Calculator \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination "id=${udid}" \
+  CODE_SIGNING_ALLOWED=NO
+
+swiftlint lint --strict
 ```
 
 ## Project Structure
@@ -64,39 +75,61 @@ xcodebuild test \
 ```text
 swift-calculate-example
 ├── Calculator
-│   ├── CalculatorApp.swift            # SwiftUI app entry point
+│   ├── CalculatorApp.swift                 # SwiftUI app entry point
 │   ├── Models
-│   │   ├── CalculatorEngine.swift     # Parsing, evaluation and formatting
-│   │   ├── CalculatorError.swift      # Typed, localized failures
-│   │   └── CalculatorOperation.swift  # The four supported operations
+│   │   ├── CalculatorEngine.swift          # Parsing, evaluation and formatting
+│   │   ├── CalculatorError.swift           # Typed, localized failures
+│   │   ├── CalculatorOperation.swift       # Binary and scientific operations
+│   │   ├── CalculatorKey.swift             # Keypad button model
+│   │   ├── CalculationHistoryEntry.swift   # One history row
+│   │   └── CalculationHistoryStore.swift   # UserDefaults persistence
 │   ├── ViewModels
-│   │   └── CalculatorViewModel.swift  # @Observable screen state
+│   │   └── CalculatorViewModel.swift       # Keypad state machine + history
 │   ├── Views
-│   │   ├── CalculatorView.swift       # Main screen
-│   │   ├── OperandField.swift         # Numeric input field
-│   │   └── ResultView.swift           # Result / error card
-│   └── Assets.xcassets                # App icon and accent color
-├── CalculatorTests                    # Swift Testing suites
-├── Calculator.xcodeproj               # Xcode project (shared scheme)
-├── .github/workflows/ci.yml           # Build, test and lint on CI
-├── .swiftlint.yml                     # SwiftLint rules
-└── .swift-format                      # swift-format rules
+│   │   ├── CalculatorView.swift            # Adaptive main screen
+│   │   ├── DisplayView.swift               # Expression / result / copy
+│   │   ├── KeypadView.swift                # Standard + scientific layout
+│   │   ├── KeyButton.swift                 # Styled key control
+│   │   └── HistoryView.swift               # History sheet
+│   ├── Utilities
+│   │   └── HapticFeedback.swift            # UIKit haptic helpers
+│   └── Assets.xcassets                     # App icon and accent color
+├── CalculatorTests                         # Swift Testing suites
+├── Calculator.xcodeproj                    # Shared Calculator scheme
+├── .github/workflows/ci.yml                # Build, test and lint
+├── .swiftlint.yml
+└── .swift-format
 ```
 
 ### Architecture notes
 
-- `CalculatorEngine` is a `Sendable` value type with no UI dependency, so it can be reused and tested in
-  isolation. It reports failures through typed `throws(CalculatorError)`.
-- `CalculatorViewModel` is `@MainActor` and `@Observable`; the views observe it through `@State`.
-- The project builds with the Swift 6 language mode and complete strict concurrency checking, and the app
-  uses the SwiftUI lifecycle, so there is no `AppDelegate`, storyboard or hand-written `Info.plist`.
+- `CalculatorEngine` is a `Sendable` value type with no UI dependency. It reports failures through typed
+  `throws(CalculatorError)`.
+- `CalculatorViewModel` is `@MainActor` and `@Observable`. It owns the keypad state machine (display,
+  pending binary operation, typing flag) and writes history through `CalculationHistoryStore`.
+- Layout chooses portrait, compact landscape or regular-width iPad arrangements from size classes and
+  geometry. Scientific keys appear in landscape and on regular-width devices.
+- The project builds with the Swift 6 language mode and complete strict concurrency checking.
+
+## Screenshots
+
+Screenshot assets are not checked into the repository yet. After running the app on a simulator or
+device, drop images under `docs/screenshots/` (for example `iphone-portrait.png`,
+`iphone-landscape.png`, `ipad.png`) and link them here.
+
+## Roadmap
+
+- Memory keys (`MC`, `MR`, `M+`, `M−`)
+- Degree / radian mode for trigonometric functions
+- Widget or App Intent for quick calculations
+- Checked-in simulator screenshots for the README
 
 ## Contributing
 
 Issues and pull requests are welcome.
 
 1. Fork the repository and create a branch: `git checkout -b feature/my-change`.
-2. Keep commits small and use conventional subjects (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`).
+2. Keep commits small and use conventional subjects (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
 3. Run `swiftlint lint --strict` and `Cmd + U` before pushing.
 4. Open a pull request describing the change and how you verified it.
 

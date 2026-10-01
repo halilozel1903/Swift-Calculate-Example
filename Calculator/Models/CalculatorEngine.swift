@@ -5,7 +5,7 @@
 
 import Foundation
 
-/// Parses user input, evaluates an operation and formats the result.
+/// Parses user input, evaluates operations and formats results.
 ///
 /// The engine is a value type without any UI dependency, so it can be unit
 /// tested on its own and used from any isolation domain.
@@ -20,15 +20,117 @@ struct CalculatorEngine: Sendable {
         self.locale = locale
     }
 
-    /// Evaluates `operation` on the raw text of both operand fields.
+    /// Evaluates a binary `operation` on the raw text of both operand fields.
     func evaluate(
         _ operation: CalculatorOperation,
         firstOperandText: String,
         secondOperandText: String
     ) throws(CalculatorError) -> Double {
+        guard operation.isBinary else {
+            throw CalculatorError.invalidOperand(.current)
+        }
         let lhs = try operand(from: firstOperandText, at: .first)
         let rhs = try operand(from: secondOperandText, at: .second)
-        return try result(of: operation, lhs: lhs, rhs: rhs)
+        return try apply(operation, lhs: lhs, rhs: rhs)
+    }
+
+    /// Applies a binary or unary `operation` to numeric operands.
+    func apply(
+        _ operation: CalculatorOperation,
+        lhs: Double,
+        rhs: Double = 0
+    ) throws(CalculatorError) -> Double {
+        let value = if operation.isBinary {
+            try applyBinary(operation, lhs: lhs, rhs: rhs)
+        } else {
+            try applyUnary(operation, to: lhs)
+        }
+        guard value.isFinite else { throw CalculatorError.resultUnrepresentable }
+        return value
+    }
+
+    private func applyBinary(
+        _ operation: CalculatorOperation,
+        lhs: Double,
+        rhs: Double
+    ) throws(CalculatorError) -> Double {
+        switch operation {
+        case .addition:
+            return lhs + rhs
+        case .subtraction:
+            return lhs - rhs
+        case .multiplication:
+            return lhs * rhs
+        case .division:
+            guard rhs != 0 else { throw CalculatorError.divisionByZero }
+            return lhs / rhs
+        case .power:
+            return pow(lhs, rhs)
+        default:
+            throw CalculatorError.invalidOperand(.current)
+        }
+    }
+
+    private func applyUnary(
+        _ operation: CalculatorOperation,
+        to value: Double
+    ) throws(CalculatorError) -> Double {
+        switch operation {
+        case .percent, .negate, .squareRoot, .square, .reciprocal:
+            return try applyElementaryUnary(operation, to: value)
+        case .sine, .cosine, .tangent, .naturalLog, .log10, .exp, .tenPow:
+            return try applyScientificUnary(operation, to: value)
+        default:
+            throw CalculatorError.invalidOperand(.current)
+        }
+    }
+
+    private func applyElementaryUnary(
+        _ operation: CalculatorOperation,
+        to value: Double
+    ) throws(CalculatorError) -> Double {
+        switch operation {
+        case .percent:
+            return value / 100
+        case .negate:
+            return -value
+        case .squareRoot:
+            guard value >= 0 else { throw CalculatorError.domainError }
+            return sqrt(value)
+        case .square:
+            return value * value
+        case .reciprocal:
+            guard value != 0 else { throw CalculatorError.divisionByZero }
+            return 1 / value
+        default:
+            throw CalculatorError.invalidOperand(.current)
+        }
+    }
+
+    private func applyScientificUnary(
+        _ operation: CalculatorOperation,
+        to value: Double
+    ) throws(CalculatorError) -> Double {
+        switch operation {
+        case .sine:
+            return sin(value)
+        case .cosine:
+            return cos(value)
+        case .tangent:
+            return tan(value)
+        case .naturalLog:
+            guard value > 0 else { throw CalculatorError.domainError }
+            return log(value)
+        case .log10:
+            guard value > 0 else { throw CalculatorError.domainError }
+            return log10(value)
+        case .exp:
+            return exp(value)
+        case .tenPow:
+            return pow(10, value)
+        default:
+            throw CalculatorError.invalidOperand(.current)
+        }
     }
 
     /// Applies `operation` to two numbers.
@@ -37,20 +139,7 @@ struct CalculatorEngine: Sendable {
         lhs: Double,
         rhs: Double
     ) throws(CalculatorError) -> Double {
-        let value: Double = switch operation {
-        case .addition: lhs + rhs
-        case .subtraction: lhs - rhs
-        case .multiplication: lhs * rhs
-        case .division:
-            if rhs == 0 {
-                throw CalculatorError.divisionByZero
-            } else {
-                lhs / rhs
-            }
-        }
-
-        guard value.isFinite else { throw CalculatorError.resultUnrepresentable }
-        return value
+        try apply(operation, lhs: lhs, rhs: rhs)
     }
 
     /// Reads a finite number out of user supplied text.
@@ -91,5 +180,10 @@ struct CalculatorEngine: Sendable {
                 .precision(.fractionLength(0...maximumFractionLength))
                 .locale(locale)
         )
+    }
+
+    /// Decimal separator preferred by ``locale``.
+    var decimalSeparator: String {
+        locale.decimalSeparator ?? "."
     }
 }
