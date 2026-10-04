@@ -4,7 +4,7 @@
 //
 
 /// Arithmetic and scientific operations the calculator supports.
-enum CalculatorOperation: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum CalculatorOperation: String, CaseIterable, Identifiable, Sendable {
     // Binary
     case addition
     case subtraction

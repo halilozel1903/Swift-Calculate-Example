@@ -6,7 +6,7 @@
 import Foundation
 
 /// Errors produced while parsing operands or evaluating an operation.
-enum CalculatorError: Error, Equatable, Sendable {
+nonisolated enum CalculatorError: Error, Equatable, Sendable {
     /// The text in one of the operand fields is empty or not a number.
     case invalidOperand(Operand)
     /// A division where the divisor is zero.
