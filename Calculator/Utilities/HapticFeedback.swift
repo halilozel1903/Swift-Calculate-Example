@@ -8,6 +8,7 @@ import UIKit
 #endif
 
 /// Light haptic taps for keypad presses.
+@MainActor
 enum HapticFeedback {
     static func keyTap() {
         #if canImport(UIKit)
