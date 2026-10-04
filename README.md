@@ -1,14 +1,14 @@
 # Swift Calculate Example
 
-[![Swift](https://img.shields.io/badge/Swift-6.0-FA7343?logo=swift&logoColor=white)](https://www.swift.org)
-[![Xcode](https://img.shields.io/badge/Xcode-26-1575F9?logo=xcode&logoColor=white)](https://developer.apple.com/xcode/)
-[![Platform](https://img.shields.io/badge/iOS-18.0%2B-000000?logo=apple&logoColor=white)](https://developer.apple.com/ios/)
+[![Swift](https://img.shields.io/badge/Swift-6.3-FA7343?logo=swift&logoColor=white)](https://www.swift.org)
+[![Xcode](https://img.shields.io/badge/Xcode-26.6-1575F9?logo=xcode&logoColor=white)](https://developer.apple.com/xcode/)
+[![Platform](https://img.shields.io/badge/iOS-26.0%2B-000000?logo=apple&logoColor=white)](https://developer.apple.com/ios/)
 [![UI](https://img.shields.io/badge/UI-SwiftUI-0A84FF?logo=swift&logoColor=white)](https://developer.apple.com/xcode/swiftui/)
 [![Tests](https://img.shields.io/badge/tests-Swift%20Testing-4BC51D)](https://developer.apple.com/documentation/testing)
 [![CI](https://github.com/halilozel1903/swift-calculate-example/actions/workflows/ci.yml/badge.svg)](https://github.com/halilozel1903/swift-calculate-example/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A modern iOS calculator sample built with SwiftUI and Swift 6.
+A modern iOS calculator sample built with SwiftUI, Swift 6 language mode, and the Swift 6.3 toolchain.
 
 What started as a 2017 UIKit storyboard demo (integer-only maths, two text fields) is now a real
 calculator: full keypad, scientific operations, persisted history, haptics, copy-to-clipboard, and
@@ -32,9 +32,9 @@ layouts that adapt to iPhone, iPad and landscape.
 
 | Tool | Version |
 | --- | --- |
-| Xcode | 26.0 or later |
-| Swift | 6.0 language mode |
-| iOS deployment target | 18.0 or later |
+| Xcode | 26.6 or later (stable; Xcode 27 is preview-only on GitHub runners as of Oct 2026) |
+| Swift | 6 language mode on the Swift 6.3 toolchain |
+| iOS deployment target | 26.0 or later |
 | Devices | iPhone and iPad |
 
 ## Getting Started
@@ -109,7 +109,10 @@ swift-calculate-example
   pending binary operation, typing flag) and writes history through `CalculationHistoryStore`.
 - Layout chooses portrait, compact landscape or regular-width iPad arrangements from size classes and
   geometry. Scientific keys appear in landscape and on regular-width devices.
-- The project builds with the Swift 6 language mode and complete strict concurrency checking.
+- The project builds with the Swift 6 language mode, Swift 6.3 toolchain defaults
+  (`SWIFT_APPROACHABLE_CONCURRENCY`, `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`), and
+  complete strict concurrency checking. Domain models stay `nonisolated` so engine tests
+  can run off the main actor.
 
 ## Screenshots
 
