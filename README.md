@@ -52,7 +52,7 @@ From the command line:
 ```bash
 # Resolve a simulator UDID, then build / test
 udid=$(xcrun simctl list devices available --json | jq -r '
-  [.devices | to_entries[] | select(.key | test("iOS")) | .value[]
+  [.devices | to_entries[] | select(.key | test("iOS-26")) | .value[]
    | select(.name | test("iPhone"))] | last | .udid')
 
 xcodebuild build \
