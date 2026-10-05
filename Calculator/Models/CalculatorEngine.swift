@@ -9,7 +9,7 @@ import Foundation
 ///
 /// The engine is a value type without any UI dependency, so it can be unit
 /// tested on its own and used from any isolation domain.
-struct CalculatorEngine: Sendable {
+nonisolated struct CalculatorEngine: Sendable {
     /// Locale used to read and write decimal separators.
     let locale: Locale
 

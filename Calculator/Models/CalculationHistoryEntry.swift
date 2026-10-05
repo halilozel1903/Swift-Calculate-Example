@@ -6,7 +6,7 @@
 import Foundation
 
 /// One completed calculation kept for the history list.
-struct CalculationHistoryEntry: Identifiable, Codable, Equatable, Sendable {
+nonisolated struct CalculationHistoryEntry: Identifiable, Codable, Equatable, Sendable {
     let id: UUID
     let expression: String
     let result: String

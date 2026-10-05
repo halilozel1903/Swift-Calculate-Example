@@ -9,7 +9,7 @@ import Foundation
 ///
 /// Not marked `Sendable` because `UserDefaults` is not Sendable; call sites
 /// keep the store on the main actor via ``CalculatorViewModel``.
-final class CalculationHistoryStore: @unchecked Sendable {
+nonisolated final class CalculationHistoryStore: @unchecked Sendable {
     private let defaults: UserDefaults
     private let key: String
     private let maximumEntries: Int

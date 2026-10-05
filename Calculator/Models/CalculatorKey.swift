@@ -4,7 +4,7 @@
 //
 
 /// A single keypad button.
-enum CalculatorKey: Hashable, Sendable {
+nonisolated enum CalculatorKey: Hashable, Sendable {
     case digit(Int)
     case decimal
     case operation(CalculatorOperation)
