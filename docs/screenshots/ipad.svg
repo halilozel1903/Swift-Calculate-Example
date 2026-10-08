@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="620" viewBox="0 0 820 620" role="img" aria-labelledby="title desc">
+  <title id="title">Calculator  iPad</title>
+  <desc id="desc">Mock of the SwiftUI calculator on iPad with history sidebar and scientific keypad.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F2F2F7"/>
+      <stop offset="100%" stop-color="#E5E5EA"/>
+    </linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <rect width="820" height="620" rx="28" fill="url(#bg)"/>
+  <rect x="10" y="10" width="800" height="600" rx="22" fill="#F2F2F7"/>
+
+  <text x="410" y="48" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="18" fill="#1C1C1E" font-weight="600">Calculator</text>
+  <text x="36" y="48" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="14" fill="#007AFF">History</text>
+  <text x="784" y="48" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="14" fill="#007AFF">Copy</text>
+
+  <!-- History panel -->
+  <rect x="24" y="72" width="220" height="512" rx="18" fill="#FFFFFF" filter="url(#soft)"/>
+  <text x="44" y="108" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#1C1C1E">Recent</text>
+  <g font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="13">
+    <rect x="36" y="128" width="196" height="56" rx="12" fill="#F2F2F7"/>
+    <text x="52" y="152" fill="#8E8E93">12 × 12</text>
+    <text x="52" y="172" fill="#1C1C1E" font-weight="600">= 144</text>
+    <rect x="36" y="196" width="196" height="56" rx="12" fill="#F2F2F7"/>
+    <text x="52" y="220" fill="#8E8E93">(144)</text>
+    <text x="52" y="240" fill="#1C1C1E" font-weight="600">= 12</text>
+    <rect x="36" y="264" width="196" height="56" rx="12" fill="#F2F2F7"/>
+    <text x="52" y="288" fill="#8E8E93">sin(À / 2)</text>
+    <text x="52" y="308" fill="#1C1C1E" font-weight="600">= 1</text>
+  </g>
+  <text x="134" y="560" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="11" fill="#8E8E93">Quick reuse on regular width</text>
+
+  <!-- Main calculator -->
+  <rect x="260" y="72" width="536" height="100" rx="18" fill="#FFFFFF" filter="url(#soft)"/>
+  <text x="776" y="112" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="18" fill="#8E8E93">À ÷ 2</text>
+  <text x="776" y="152" text-anchor="end" font-family="ui-rounded, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="36" font-weight="600" fill="#1C1C1E">1.570796</text>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+    <!-- Scientific -->
+    <rect x="260" y="192" width="80" height="48" rx="12" fill="#5856D6"/><text x="300" y="222" fill="#FFFFFF"></text>
+    <rect x="350" y="192" width="80" height="48" rx="12" fill="#5856D6"/><text x="390" y="222" fill="#FFFFFF">x²</text>
+    <rect x="440" y="192" width="80" height="48" rx="12" fill="#5856D6"/><text x="480" y="222" fill="#FFFFFF">1/x</text>
+    <rect x="530" y="192" width="80" height="48" rx="12" fill="#5856D6"/><text x="570" y="222" fill="#FFFFFF">x</text>
+    <rect x="620" y="192" width="80" height="48" rx="12" fill="#5856D6"/><text x="660" y="222" fill="#FFFFFF">sin</text>
+    <rect x="710" y="192" width="86" height="48" rx="12" fill="#5856D6"/><text x="753" y="222" fill="#FFFFFF">cos</text>
+
+    <rect x="260" y="250" width="80" height="48" rx="12" fill="#5856D6"/><text x="300" y="280" fill="#FFFFFF">tan</text>
+    <rect x="350" y="250" width="80" height="48" rx="12" fill="#5856D6"/><text x="390" y="280" fill="#FFFFFF">À</text>
+    <rect x="440" y="250" width="80" height="48" rx="12" fill="#5856D6"/><text x="480" y="280" fill="#FFFFFF">ln</text>
+    <rect x="530" y="250" width="80" height="48" rx="12" fill="#5856D6"/><text x="570" y="280" fill="#FFFFFF">log</text>
+    <rect x="620" y="250" width="80" height="48" rx="12" fill="#5856D6"/><text x="660" y="280" fill="#FFFFFF">eã</text>
+    <rect x="710" y="250" width="86" height="48" rx="12" fill="#5856D6"/><text x="753" y="280" fill="#FFFFFF">10ã</text>
+
+    <!-- Basic -->
+    <g font-size="18">
+      <rect x="260" y="318" width="120" height="56" rx="14" fill="#AEAEB2"/><text x="320" y="353" fill="#1C1C1E">AC</text>
+      <rect x="392" y="318" width="120" height="56" rx="14" fill="#AEAEB2"/><text x="452" y="353" fill="#1C1C1E">+/</text>
+      <rect x="524" y="318" width="120" height="56" rx="14" fill="#AEAEB2"/><text x="584" y="353" fill="#1C1C1E">%</text>
+      <rect x="656" y="318" width="140" height="56" rx="14" fill="#FF9F0A"/><text x="726" y="353" fill="#FFFFFF">÷</text>
+
+      <rect x="260" y="386" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="320" y="421" fill="#FFFFFF">7</text>
+      <rect x="392" y="386" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="452" y="421" fill="#FFFFFF">8</text>
+      <rect x="524" y="386" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="584" y="421" fill="#FFFFFF">9</text>
+      <rect x="656" y="386" width="140" height="56" rx="14" fill="#FF9F0A"/><text x="726" y="421" fill="#FFFFFF">×</text>
+
+      <rect x="260" y="454" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="320" y="489" fill="#FFFFFF">4</text>
+      <rect x="392" y="454" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="452" y="489" fill="#FFFFFF">5</text>
+      <rect x="524" y="454" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="584" y="489" fill="#FFFFFF">6</text>
+      <rect x="656" y="454" width="140" height="56" rx="14" fill="#FF9F0A"/><text x="726" y="489" fill="#FFFFFF"></text>
+
+      <rect x="260" y="522" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="320" y="557" fill="#FFFFFF">1</text>
+      <rect x="392" y="522" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="452" y="557" fill="#FFFFFF">2</text>
+      <rect x="524" y="522" width="120" height="56" rx="14" fill="#3A7BD5"/><text x="584" y="557" fill="#FFFFFF">3</text>
+      <rect x="656" y="522" width="140" height="56" rx="14" fill="#FF9F0A"/><text x="726" y="557" fill="#FFFFFF">+</text>
+    </g>
+  </g>
+</svg>
