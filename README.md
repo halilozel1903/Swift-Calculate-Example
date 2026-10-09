@@ -39,37 +39,100 @@ layouts that adapt to iPhone, iPad and landscape.
 
 ## Getting Started
 
+Requires **macOS** with **Xcode 26.6+** (Swift 6.3 toolchain) and an **iOS 26** simulator.
+
 ```bash
 git clone https://github.com/halilozel1903/swift-calculate-example.git
 cd swift-calculate-example
+```
+
+### Open in Xcode
+
+```bash
 open Calculator.xcodeproj
 ```
 
-Select the `Calculator` scheme and an iOS simulator, then press `Cmd + R` to run or `Cmd + U` to test.
+1. Select the shared **Calculator** scheme.
+2. Choose an **iOS 26** simulator (iPhone or iPad).
+3. Press **Cmd + R** to run, or **Cmd + U** to run tests.
 
-From the command line:
+### Build, test, and run from the CLI
+
+Prefer an iOS 26 simulator so the destination matches the deployment target. Resolve a UDID once, then reuse it:
 
 ```bash
-# Resolve a simulator UDID, then build / test
+# Prefer an available iPhone on an iOS 26 runtime
 udid=$(xcrun simctl list devices available --json | jq -r '
   [.devices | to_entries[] | select(.key | test("iOS-26")) | .value[]
-   | select(.name | test("iPhone"))] | last | .udid')
+   | select(.name | test("iPhone"))] | last | .udid // empty')
 
+# Fallback: any available iPhone simulator
+if [ -z "$udid" ]; then
+  udid=$(xcrun simctl list devices available --json | jq -r '
+    [.devices | to_entries[] | select(.key | test("iOS")) | .value[]
+     | select(.name | test("iPhone"))] | last | .udid // empty')
+fi
+
+echo "Using simulator: ${udid}"
+```
+
+You can also pass a named destination instead of a UDID:
+
+```bash
+# Examples — adjust the device name to one listed by `xcrun simctl list devices available`
+-destination 'platform=iOS Simulator,name=iPhone 17,OS=26.0'
+-destination "id=${udid}"
+```
+
+**Build**
+
+```bash
 xcodebuild build \
   -project Calculator.xcodeproj \
   -scheme Calculator \
   -destination "id=${udid}" \
   CODE_SIGNING_ALLOWED=NO
+```
 
+**Test** (Swift Testing suites under `CalculatorTests`)
+
+```bash
 xcodebuild test \
   -project Calculator.xcodeproj \
   -scheme Calculator \
   -destination "id=${udid}" \
   CODE_SIGNING_ALLOWED=NO
+```
 
+CI uses the same scheme with `build-for-testing` / `test-without-building` on `macos-26` + Xcode 26.6.
+
+**Run** (build, install, and launch on the booted simulator)
+
+```bash
+xcrun simctl boot "${udid}" 2>/dev/null || true
+open -a Simulator
+
+xcodebuild build \
+  -project Calculator.xcodeproj \
+  -scheme Calculator \
+  -destination "id=${udid}" \
+  -derivedDataPath build \
+  CODE_SIGNING_ALLOWED=NO
+
+app=$(find build/Build/Products -name 'Calculator.app' | head -n 1)
+xcrun simctl install booted "$app"
+xcrun simctl launch booted com.ozel.halil.Calculator
+```
+
+### Lint
+
+SwiftLint is enforced in CI (`swiftlint lint --strict`). Install locally if needed (`brew install swiftlint`), then:
+
+```bash
 swiftlint lint --strict
 ```
 
+Optional formatting config lives in `.swift-format` (SwiftFormat / `swift format` when you use those tools).
 ## Project Structure
 
 ```text
@@ -96,6 +159,7 @@ swift-calculate-example
 │   └── Assets.xcassets                     # App icon and accent color
 ├── CalculatorTests                         # Swift Testing suites
 ├── Calculator.xcodeproj                    # Shared Calculator scheme
+├── docs/screenshots                        # UI mocks + capture notes
 ├── .github/workflows/ci.yml                # Build, test and lint
 ├── .swiftlint.yml
 └── .swift-format
@@ -116,16 +180,30 @@ swift-calculate-example
 
 ## Screenshots
 
-Screenshot assets are not checked into the repository yet. After running the app on a simulator or
-device, drop images under `docs/screenshots/` (for example `iphone-portrait.png`,
-`iphone-landscape.png`, `ipad.png`) and link them here.
+Layout mocks that match the SwiftUI UI (standard keypad, landscape scientific keys, iPad history).
+These are SVG illustrations — Linux CI hosts cannot capture the iOS Simulator GUI. Replace them with
+real PNGs when you have a Mac; see [docs/screenshots/README.md](docs/screenshots/README.md).
+
+| iPhone portrait | iPhone landscape | iPad |
+| --- | --- | --- |
+| ![iPhone portrait](docs/screenshots/iphone-portrait.svg) | ![iPhone landscape](docs/screenshots/iphone-landscape.svg) | ![iPad](docs/screenshots/ipad.svg) |
+
+**Expected PNG paths** (optional, after a simulator capture):
+
+- `docs/screenshots/iphone-portrait.png`
+- `docs/screenshots/iphone-landscape.png`
+- `docs/screenshots/ipad.png`
+
+```bash
+xcrun simctl io booted screenshot docs/screenshots/iphone-portrait.png
+```
 
 ## Roadmap
 
 - Memory keys (`MC`, `MR`, `M+`, `M−`)
 - Degree / radian mode for trigonometric functions
 - Widget or App Intent for quick calculations
-- Checked-in simulator screenshots for the README
+- Replace SVG mocks with checked-in simulator PNGs
 
 ## Contributing
 
@@ -133,7 +211,7 @@ Issues and pull requests are welcome.
 
 1. Fork the repository and create a branch: `git checkout -b feature/my-change`.
 2. Keep commits small and use conventional subjects (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
-3. Run `swiftlint lint --strict` and `Cmd + U` before pushing.
+3. Run `swiftlint lint --strict` and `xcodebuild test` (or `Cmd + U`) before pushing.
 4. Open a pull request describing the change and how you verified it.
 
 ## License
