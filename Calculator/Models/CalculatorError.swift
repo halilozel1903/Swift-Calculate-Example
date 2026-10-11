@@ -7,7 +7,7 @@ import Foundation
 
 /// Errors produced while parsing operands or evaluating an operation.
 nonisolated enum CalculatorError: Error, Equatable, Sendable {
-    /// The text in one of the operand fields is empty or not a number.
+    /// An operand string is empty or not a number.
     case invalidOperand(Operand)
     /// A division where the divisor is zero.
     case divisionByZero
@@ -27,9 +27,9 @@ extension CalculatorError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidOperand(.first):
-            "Enter a number in the first field."
+            "Enter the first number."
         case .invalidOperand(.second):
-            "Enter a number in the second field."
+            "Enter the second number."
         case .invalidOperand(.current):
             "Enter a number."
         case .divisionByZero:
