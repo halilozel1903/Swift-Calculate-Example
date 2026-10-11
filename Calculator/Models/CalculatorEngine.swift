@@ -20,7 +20,7 @@ nonisolated struct CalculatorEngine: Sendable {
         self.locale = locale
     }
 
-    /// Evaluates a binary `operation` on the raw text of both operand fields.
+    /// Evaluates a binary `operation` on the raw text of both operands.
     func evaluate(
         _ operation: CalculatorOperation,
         firstOperandText: String,

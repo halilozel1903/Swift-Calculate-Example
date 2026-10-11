@@ -54,7 +54,7 @@ struct CalculatorViewModelTests {
         #expect(viewModel.errorMessage == CalculatorError.divisionByZero.localizedDescription)
     }
 
-    @Test("Clear resets every field")
+    @Test("Clear resets operands and result")
     func clear() throws {
         let viewModel = try makeViewModel()
         viewModel.firstOperandText = "1"
