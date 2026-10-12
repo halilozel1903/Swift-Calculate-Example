@@ -133,6 +133,7 @@ swiftlint lint --strict
 ```
 
 Optional formatting config lives in `.swift-format` (SwiftFormat / `swift format` when you use those tools).
+
 ## Project Structure
 
 ```text

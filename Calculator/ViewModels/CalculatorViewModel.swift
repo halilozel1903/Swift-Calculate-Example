@@ -30,8 +30,8 @@ final class CalculatorViewModel {
     private let engine: CalculatorEngine
     private let historyStore: CalculationHistoryStore
 
-    /// Legacy fields kept so older two-operand tests and call sites still compile
-    /// while the keypad UI is the primary interface.
+    /// Optional two-operand text inputs kept for direct `calculate(_:)` call sites
+    /// and tests; the keypad UI drives `displayText` instead.
     var firstOperandText = ""
     var secondOperandText = ""
     private(set) var resultText: String?
@@ -61,7 +61,7 @@ final class CalculatorViewModel {
         isTyping || displayText != "0" ? "C" : "AC"
     }
 
-    /// Evaluates `operation` using the two operand text fields.
+    /// Evaluates `operation` using `firstOperandText` and `secondOperandText`.
     func calculate(_ operation: CalculatorOperation) {
         do {
             let value = try engine.evaluate(
